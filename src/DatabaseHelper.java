@@ -93,6 +93,10 @@ public class DatabaseHelper {
     public Statement getdBStatement() {
         return st;
     }
+//
+//    public boolean insertRestaurant(){
+//
+//    }
 
 }
 
