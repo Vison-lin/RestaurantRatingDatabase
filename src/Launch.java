@@ -8,8 +8,7 @@ public class Launch {
         String url = "jdbc:postgresql://localhost:5432/";
         String userName = "project";
         String password = "123";
-        DatabaseHelper DatabaseHelper = new DatabaseHelper(dbName, url, userName, password);
-
+        DatabaseHelper databaseHelper = DatabaseHelper.getInstance(dbName, url, userName, password);
     }
 
 }
