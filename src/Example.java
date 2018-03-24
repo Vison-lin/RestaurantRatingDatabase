@@ -7,20 +7,29 @@ import java.util.Properties;
 public class Example {
 
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
-        Class.forName("org.postgresql.Driver");
 
-        //connectoin
-        String dbName = "postgres";//todo your dB name
-        String url = "jdbc:postgresql://localhost:5432/";//todo your postresql url
+        Example example = new Example();
+        String dbName = "postgres";
+        String url = "jdbc:postgresql://localhost:5432/";
+        String userName = "project";
+        String password = "123";
+        example.init(dbName, url, userName, password);
+
+
+    }
+
+    private void init(String dbName, String url, String userName, String password) throws ClassNotFoundException, SQLException {
+        Class.forName("org.postgresql.Driver");
 
         //authentication
         Properties props = new Properties();
-        props.setProperty("user", "project");//todo your username
-        props.setProperty("password", "123");//todo your password
+        props.setProperty("user", userName);
+        props.setProperty("password", password);
         Connection db = DriverManager.getConnection(url + dbName, props);
 
         Statement st = db.createStatement();
-        //todo Write the sql below using st:
+
+        //init: create table
         st.execute("CREATE TABLE RATER\n" +
                 "(userID char(5) PRIMARY KEY,\n" +
                 "email char(100),\n" +
@@ -73,8 +82,6 @@ public class Example {
                 "comments char(500),\n" +
                 "PRIMARY KEY(userId, joinDate, itemID));");
         st.close();
-
-
     }
 
 }
