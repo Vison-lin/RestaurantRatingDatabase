@@ -4,30 +4,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-public class Example {
+public class DatabaseHelper {
 
-    public static void main(String args[]) throws ClassNotFoundException, SQLException {
+    private static DatabaseHelper sInstance;
+    private final Connection db;
+    private final Statement st;
 
-        Example example = new Example();
-        String dbName = "postgres";
-        String url = "jdbc:postgresql://localhost:5432/";
-        String userName = "project";
-        String password = "123";
-        example.init(dbName, url, userName, password);
-
-
-    }
-
-    private void init(String dbName, String url, String userName, String password) throws ClassNotFoundException, SQLException {
+    private DatabaseHelper(String dbName, String url, String userName, String password) throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
 
         //authentication
         Properties props = new Properties();
         props.setProperty("user", userName);
         props.setProperty("password", password);
-        Connection db = DriverManager.getConnection(url + dbName, props);
+        db = DriverManager.getConnection(url + dbName, props);
 
-        Statement st = db.createStatement();
+        st = db.createStatement();
 
         //init: create table
         st.execute("CREATE TABLE RATER\n" +
@@ -84,4 +76,23 @@ public class Example {
         st.close();
     }
 
+    public static synchronized DatabaseHelper getInstance(String dbName, String url, String userName, String password) throws SQLException, ClassNotFoundException {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        if (sInstance == null) {
+            sInstance = new DatabaseHelper(dbName, url, userName, password);
+        }
+        return sInstance;
+    }
+
+    public Connection getdBConnection() {
+        return db;
+    }
+
+    public Statement getdBStatement() {
+        return st;
+    }
+
 }
+
