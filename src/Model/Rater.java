@@ -11,7 +11,6 @@ public class Rater {
     private int reputation;
 
     public Rater(String email, String name, Calendar joinDate, String type, int reputation) {
-        this.userID = userID;
         this.email = email;
         this.name = name;
         this.joinDate = joinDate;
