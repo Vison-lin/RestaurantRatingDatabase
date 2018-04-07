@@ -2,13 +2,6 @@ package mDB;
 
 import Model.Location;
 import Model.MenuItem;
-import Model.Restaurant;
-import javafx.util.Pair;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 import Model.Rater;
 import Model.Restaurant;
 import javafx.util.Pair;
@@ -16,6 +9,7 @@ import javafx.util.Pair;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class DatabaseHelper {
@@ -347,7 +341,44 @@ public class DatabaseHelper {
                 tempPair = new Pair<Rater, Integer>(tempRater, rs.getInt(5));
                 result.add(tempPair);
             }
-        } catch (Exception SQLEXception) {
+        } catch (Exception SQLException) {
+
+        }
+        return result;
+    }
+
+    //Question g
+    public ArrayList<ArrayList<String>> getRestaurantsWithNoRatingInJan() {
+        ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+        int i = 0;
+        try {
+            ResultSet rs = st.executeQuery("create view inJan as\n" +
+                    "select * from rating where dateadded > '2014-12-31' and dateadded < '2015-02-01';\n" +
+                    "\n" +
+                    "create view restInfoInJan as\n" +
+                    "select j.restaurantID, r.name, r.type from inJan j\n" +
+                    "left join Restaurant r on r.restaurantID = j.restaurantID;\n" +
+                    "\n" +
+                    "select name, phoneNumber, type from restInfoInJan j\n" +
+                    "left join Location l on l.restaurantID = j.restaurantID;\n");
+            while (rs.next()) {
+                result.get(i).add(rs.getString(1));
+                result.get(i).add(rs.getString(2));
+                result.get(i).add(rs.getString(3));
+                i += 1;
+            }
+        } catch (Exception SQLException) {
+
+        }
+        try {
+            st.execute("drop view inJan");
+        } catch (Exception SQLException) {
+
+        }
+
+        try {
+            st.execute("drop view restInfoInJan");
+        } catch (Exception SQLException) {
 
         }
         return result;
