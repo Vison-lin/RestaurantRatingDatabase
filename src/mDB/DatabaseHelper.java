@@ -1,9 +1,14 @@
 package mDB;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import Model.Location;
+import Model.MenuItem;
+import Model.Restaurant;
+import javafx.util.Pair;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class DatabaseHelper {
@@ -82,7 +87,7 @@ public class DatabaseHelper {
         st.execute(
                 //RATER TABLE
 
-                "CREATE TABLE " + RATER_TABLE_NAME +
+                "CREATE TABLE IF NOT EXISTS " + RATER_TABLE_NAME +
                         "(" + RATER_PRIM_KEY_USERID + " SERIAL PRIMARY KEY, " +
                         RATER_EMAIL + " char(100), " +
                         RATER_NAME + " char(50), " +
@@ -92,57 +97,57 @@ public class DatabaseHelper {
 
                         //RESTAURANT TABLE
 
-                        "CREATE TABLE " + RESTAURANT_TABLE_NAME +
-                        "(" + RESTAURANT_PRIM_KEY_RESTAURANTID + " char(5) PRIMARY KEY, " +
+                        "CREATE TABLE IF NOT EXISTS " + RESTAURANT_TABLE_NAME +
+                        "(" + RESTAURANT_PRIM_KEY_RESTAURANTID + " SERIAL PRIMARY KEY, " +
                         RESTAURANT_NAME + " char(50), " +
                         RESTAURANT_TYPE + " char(50), " +
                         RESTAURANT_URL + " char(100));" +
 
                         //RATING TABLE
 
-                        "CREATE TABLE " + RATING_TABLE_NAME +
-                        "(" + RATING_PRIM_KEY_USERID_FOREIGN_KEY + " SERIAL references " + RATER_TABLE_NAME + " ( " + RATER_PRIM_KEY_USERID + "), " +
+                        "CREATE TABLE IF NOT EXISTS " + RATING_TABLE_NAME +
+                        "(" + RATING_PRIM_KEY_USERID_FOREIGN_KEY + " INTEGER references " + RATER_TABLE_NAME + " ( " + RATER_PRIM_KEY_USERID + "), " +
                         RATING_PRIM_KEY_DATE_ADDED + " date, " +
                         RATING_PRICE + " numeric check ( " + RATING_PRICE + " <=5 AND " + RATING_PRICE + " >= 1), " +
                         RATING_FOOD + " numeric check (food <=5 AND food >= 1), " +
                         RATING_MOOD + " numeric check (mood <=5 AND mood >= 1), " +
                         RATING_STAFF + " numeric check ( " + RATING_STAFF + " <=5 AND " + RATING_STAFF + " >= 1)," +
                         RATING_COMMENTS + " char(500), " +
-                        RATING_RESTAURANTID_FOREIGN_KEY + " char(5) references Restaurant(" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")," +
+                        RATING_RESTAURANTID_FOREIGN_KEY + " INTEGER references Restaurant(" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")," +
                         "PRIMARY KEY ( " + RATING_PRIM_KEY_USERID_FOREIGN_KEY + ", " + RATING_PRIM_KEY_DATE_ADDED + "), " +
                         "UNIQUE( " + RATING_PRIM_KEY_USERID_FOREIGN_KEY + ", " + RATING_PRIM_KEY_DATE_ADDED + " ));" +
 
                         //LOCATION TABLE
 
-                        "CREATE TABLE " + LOCATION_TABLE_NAME +
-                        "(" + LOCATION_PRIM_KEY_LOCATIONID + " char(5) PRIMARY KEY, " +
+                        "CREATE TABLE IF NOT EXISTS " + LOCATION_TABLE_NAME +
+                        "(" + LOCATION_PRIM_KEY_LOCATIONID + " SERIAL PRIMARY KEY, " +
                         LOCATION_FIRST_OPEN_DATE + " date, " +
                         LOCATION_MANAGER_NAME + " char(20), " +
                         LOCATION_PHONE_NUMBER + " char(10), " +
                         LOCATION_ADDRESS + " char(30), " +
-                        LOCATION_RESTAURANTID_FOREIGN_KEY + " char(5) references " + RESTAURANT_TABLE_NAME + " ( " + RESTAURANT_PRIM_KEY_RESTAURANTID + " ));" +
+                        LOCATION_RESTAURANTID_FOREIGN_KEY + " INTEGER references " + RESTAURANT_TABLE_NAME + " ( " + RESTAURANT_PRIM_KEY_RESTAURANTID + " ));" +
 
                         //MENUITEM TABLE
 
-                        "CREATE TABLE " + MENUITEM_TABLE_NAME +
-                        "(" + MENUITEM_PRIM_KEY_ITEMID + " char(5) PRIMARY KEY, " +
+                        "CREATE TABLE IF NOT EXISTS " + MENUITEM_TABLE_NAME +
+                        "(" + MENUITEM_PRIM_KEY_ITEMID + " SERIAL PRIMARY KEY, " +
                         MENUITEM_NAME + " char(20), " +
                         MENUITEM_TYPE + " char(8) check (type = 'food' OR type = 'beverage'), " +
                         MENUITEM_CATEGORY + " char(7) check ( " + MENUITEM_CATEGORY + " = 'starter' OR " + MENUITEM_CATEGORY + " = 'main' OR " + MENUITEM_CATEGORY + " = 'desert'), " +
                         MENUITEM_DESCRIPTION + " char(50), " +
                         MENUITEM_PRICE + " numeric(2), " +
-                        MENUITEM_RESTAURANTID_FOREIGN_KEY + " char(5) references " + RESTAURANT_TABLE_NAME + "( " + RESTAURANT_PRIM_KEY_RESTAURANTID + " ));" +
+                        MENUITEM_RESTAURANTID_FOREIGN_KEY + " INTEGER references " + RESTAURANT_TABLE_NAME + "( " + RESTAURANT_PRIM_KEY_RESTAURANTID + " ));" +
 
                         //RATINGITEM TABLE
 
-                        "CREATE TABLE " + RATINGITEM_TABLE_NAME +
-                        "(" + RATINGITEM_PRIM_KEY_USERID + " char(5), " +
+                        "CREATE TABLE IF NOT EXISTS " + RATINGITEM_TABLE_NAME +
+                        "(" + RATINGITEM_PRIM_KEY_USERID + " SERIAL, " +
                         RATINGITEM_PRIM_KEY_JOIN_DATE + " date, " +
-                        RATINGITEM_PRIM_KEY_ITEMID + " char(5) references " + MENUITEM_TABLE_NAME + " ( " + MENUITEM_PRIM_KEY_ITEMID + " ), " +
+                        RATINGITEM_PRIM_KEY_ITEMID + " INTEGER references " + MENUITEM_TABLE_NAME + " ( " + MENUITEM_PRIM_KEY_ITEMID + " ), " +
                         RATINGITEM_RATING + " numeric check ( " + RATINGITEM_RATING + " <=5 AND " + RATINGITEM_RATING + " >= 1)," +
                         RATINGITEM_COMMENTS + " char(500), " +
                         "PRIMARY KEY( " + RATINGITEM_PRIM_KEY_USERID + ", " + RATINGITEM_PRIM_KEY_JOIN_DATE + ", " + RATINGITEM_PRIM_KEY_ITEMID + "));");
-        st.close();
+        //st.close();
     }
 
     public static synchronized DatabaseHelper getInstance(String dbName, String url, String userName, String password) throws SQLException, ClassNotFoundException {
@@ -169,6 +174,98 @@ public class DatabaseHelper {
         return st;
     }
 
+
+    /**
+     * a
+     *
+     * @param restaurantID the prim key of that restaurant
+     * @return Pair<Restaurant   ,       ArrayList   <   Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
+     * @throws SQLException
+     */
+    public Pair<Restaurant, ArrayList<Location>> displayRestaurantInfo(long restaurantID) throws SQLException {
+        ResultSet rs = st.executeQuery("SELECT * FROM " + RESTAURANT_TABLE_NAME + " AS R JOIN " + LOCATION_TABLE_NAME + " AS L USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ") WHERE R." + RESTAURANT_PRIM_KEY_RESTAURANTID + " = " + restaurantID + ";");
+        Restaurant restaurant = null;
+        ArrayList<Location> locations = new ArrayList<>();
+        if (rs.next()) {
+            //restaurant
+            Long restID = Long.valueOf(rs.getString(1));
+            String restName = rs.getString(2);
+            String restType = rs.getString(3);
+            String restUrl = rs.getString(4);
+            //location
+            Long locationID = Long.valueOf(rs.getString(5));
+            Calendar locationOpenDate = Calendar.getInstance();
+            locationOpenDate.setTime(rs.getDate(6));
+            String locationMgrName = rs.getString(7);
+            String locationPhone = rs.getString(8);
+            String locationAddr = rs.getString(9);
+
+            restaurant = new Restaurant(restName, restType, restUrl);
+            restaurant.setRestaurantID(restID);
+            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restID);
+            location.setLocationID(locationID);
+            locations.add(location);
+        }
+        while (rs.next()) {
+            Long locationID = Long.valueOf(rs.getString(5));
+            Calendar locationOpenDate = Calendar.getInstance();
+            locationOpenDate.setTime(rs.getDate(6));
+            String locationMgrName = rs.getString(7);
+            String locationPhone = rs.getString(8);
+            String locationAddr = rs.getString(9);
+            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restaurantID);
+            location.setLocationID(locationID);
+            locations.add(location);
+        }
+        return new Pair<>(restaurant, locations);
+
+    }
+
+    /**
+     * b
+     *
+     * @param restaurantID the id of the restaurant of the menu
+     * @return HashMap<String   ,       ArrayList   <   MenuItem>>, where key is the type of the items, can only be: main, starter, or Fires.
+     * @throws SQLException
+     */
+    public HashMap<String, ArrayList<MenuItem>> fullMenu(long restaurantID) throws SQLException {
+        ResultSet rs = st.executeQuery("SELECT * FROM " + MENUITEM_TABLE_NAME + " AS M WHERE M." + MENUITEM_RESTAURANTID_FOREIGN_KEY + " = " + restaurantID + " ORDER BY M." + MENUITEM_CATEGORY + ";");
+        HashMap<String, ArrayList<MenuItem>> result = new HashMap<>();
+        String currCategory = "";
+        ArrayList<MenuItem> menuItems = null;
+        while (rs.next()) {
+            Long itemID = rs.getLong(1);
+            String name = rs.getString(2);
+            String type = rs.getString(3);
+            String category = rs.getString(4);
+            String description = rs.getString(5);
+            Float price = rs.getFloat(6);
+            MenuItem menuItem = new MenuItem(name, type, category, price, restaurantID, description);
+            menuItem.setItemID(itemID);
+            if (currCategory.equals("")) {
+                currCategory = category;
+                menuItems = new ArrayList<>();
+            }
+            if (!category.equals(currCategory)) {//if goes to the new category
+
+                if (menuItems == null) {
+                    throw new NullPointerException();
+                }
+                result.put(currCategory, menuItems);
+                menuItems = new ArrayList<>();
+                menuItems.add(menuItem);
+                currCategory = category;
+
+            } else {
+                if (menuItems == null) {
+                    throw new NullPointerException();
+                }
+                menuItems.add(menuItem);
+            }
+        }
+        result.put(currCategory, menuItems);
+        return result;
+    }
 
 }
 
