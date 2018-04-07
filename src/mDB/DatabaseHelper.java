@@ -126,10 +126,10 @@ public class DatabaseHelper {
 
                         "CREATE TABLE " + MENUITEM_TABLE_NAME +
                         "(" + MENUITEM_PRIM_KEY_ITEMID + " char(5) PRIMARY KEY, " +
-                        MENUITEM_NAME + " char(20), " +
+                        MENUITEM_NAME + " char(50), " +
                         MENUITEM_TYPE + " char(8) check (type = 'food' OR type = 'beverage'), " +
                         MENUITEM_CATEGORY + " char(7) check ( " + MENUITEM_CATEGORY + " = 'starter' OR " + MENUITEM_CATEGORY + " = 'main' OR " + MENUITEM_CATEGORY + " = 'desert'), " +
-                        MENUITEM_DESCRIPTION + " char(50), " +
+                        MENUITEM_DESCRIPTION + " char(100), " +
                         MENUITEM_PRICE + " numeric(2), " +
                         MENUITEM_RESTAURANTID_FOREIGN_KEY + " char(5) references " + RESTAURANT_TABLE_NAME + "( " + RESTAURANT_PRIM_KEY_RESTAURANTID + " ));" +
 
@@ -169,6 +169,43 @@ public class DatabaseHelper {
         return st;
     }
 
+
+    public boolean addRestaurant(String name, String type, String url) {
+        try {
+            st.execute("INSERT INTO RESTAURANT VALUES (DEFAULT, '" + name + "','" + type + "','" + url + "');");
+        } catch (Exception SQLException) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean addRater(String email, String name, String joinDate, String type, int reputation) {
+        try {
+            st.execute("INSERT INTO RATER VALUES (DEFAULT, '" + email + "','" + name + "', '" + joinDate + "','" + type + "'," + Integer.toString(reputation) + ");");
+        } catch (Exception SQLException) {
+            return false;
+        }
+        return true;
+    }
+
+
+    public boolean addMenuItem(String name, String type, String category, String description, double price, int restaurantID) {
+        try {
+            st.execute("INSERT INTO MENUITEM VALUES (DEFAULT, '" + name + "','" + type + "','" + category + "','" + description + "'," + Double.toString(price) + "," + Integer.toString(restaurantID) + ");");
+        } catch (Exception SQLException) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean deleteFromMenuItem(int id) {
+        try {
+            st.execute("DELETE FROM MENUITEM WHERE itemID =  " + Integer.toString(id));
+        } catch (Exception SQLException) {
+            return false;
+        }
+        return true;
+    }
 
 }
 
