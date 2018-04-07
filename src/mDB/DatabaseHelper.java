@@ -268,6 +268,62 @@ public class DatabaseHelper {
         return result;
     }
 
+    /**
+     * c
+     *
+     * @param category the prim key of that restaurant
+     * @return Pair<Restaurant       ,               ArrayList       <       Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
+     * @throws SQLException
+     */
+    public HashMap<Restaurant, ArrayList<Location>> displayRestaurantLocationMgr(String category) throws SQLException {
+        ResultSet rs = st.executeQuery("SELECT * FROM " + RESTAURANT_TABLE_NAME + " AS R JOIN " + LOCATION_TABLE_NAME + " AS L USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ") WHERE R." + RESTAURANT_TYPE + " = '" + category + "' ORDER BY R." + RESTAURANT_PRIM_KEY_RESTAURANTID + ";");
+        HashMap<Restaurant, ArrayList<Location>> result = new HashMap<>();
+        ArrayList<Location> locations = null;
+        Restaurant currResturant = null;
+        while (rs.next()) {
+            //restaurant
+            Long restID = Long.valueOf(rs.getString(1));
+            String restName = rs.getString(2);
+            String restType = rs.getString(3);
+            String restUrl = rs.getString(4);
+            Restaurant restaurant = new Restaurant(restName, restType, restUrl);
+            restaurant.setRestaurantID(restID);
+
+            //location
+            Long locationID = Long.valueOf(rs.getString(5));
+            Calendar locationOpenDate = Calendar.getInstance();
+            locationOpenDate.setTime(rs.getDate(6));
+            String locationMgrName = rs.getString(7);
+            String locationPhone = rs.getString(8);
+            String locationAddr = rs.getString(9);
+
+
+            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restID);
+            location.setLocationID(locationID);
+
+
+            if (currResturant == null) {//init
+                currResturant = restaurant;
+
+                locations = new ArrayList<>();
+            }
+            if (restID == currResturant.getRestaurantID()) {
+                locations.add(location);
+            } else {//new restaurant
+                result.put(currResturant, locations);
+                currResturant = restaurant;
+
+                locations = new ArrayList<>();
+                locations.add(location);
+            }
+
+
+        }
+        result.put(currResturant, locations);
+        return result;
+
+    }
+
     public boolean addRestaurant(String name, String type, String url) {
         try {
             st.execute("INSERT INTO RESTAURANT VALUES (DEFAULT, '" + name + "','" + type + "','" + url + "');");
@@ -383,7 +439,6 @@ public class DatabaseHelper {
         }
         return result;
     }
-
 
 }
 
