@@ -1,9 +1,12 @@
 package mDB;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import Model.Rater;
+import Model.Restaurant;
+import javafx.util.Pair;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Properties;
 
 public class DatabaseHelper {
@@ -206,6 +209,49 @@ public class DatabaseHelper {
         }
         return true;
     }
+
+    //Question f
+    public ArrayList<Pair<Restaurant, Integer>> getTotalRestaurantReviews() {
+        ArrayList<Pair<Restaurant, Integer>> result = new ArrayList<Pair<Restaurant, Integer>>();
+        Restaurant tempRest = null;
+        Pair tempPair = null;
+        try {
+            ResultSet rs = st.executeQuery("select rest.restaurantID, rest.name, rest.type, rest.url, count(rat.restaurantID) from restaurant rest left join rating rat on rat.restaurantID = rest.restaurantID group by rest.restaurantID order by rest.restaurantID");
+            while (rs.next()) {
+                tempRest = new Restaurant(rs.getString(2), rs.getString(3), rs.getString(4));
+                tempRest.setRestaurantID(rs.getLong(1));
+                tempPair = new Pair<Restaurant, Integer>(tempRest, rs.getInt(5));
+                result.add(tempPair);
+            }
+        } catch (Exception SQLEXception) {
+
+        }
+        return result;
+    }
+
+    public ArrayList<Pair<Rater, Integer>> getTotalRaterReviews() {
+        ArrayList<Pair<Rater, Integer>> result = new ArrayList<Pair<Rater, Integer>>();
+        Rater tempRater = null;
+        Pair tempPair = null;
+        try {
+            ResultSet rs = st.executeQuery("select rater.userID, rater.email, rater.name, rater.joinDate, rater.type, rater.reputation, count(rating.userID) from RATER rater \n" +
+                    "left join Rating rating on rater.userID = rating.userID \n" +
+                    "group by rater.userID order by rater.userID");
+
+            while (rs.next()) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(rs.getDate(4));
+                tempRater = new Rater(rs.getString(2), rs.getString(3), cal, rs.getString(4), rs.getInt(5));
+                tempRater.setUserID(rs.getLong(1));
+                tempPair = new Pair<Rater, Integer>(tempRater, rs.getInt(5));
+                result.add(tempPair);
+            }
+        } catch (Exception SQLEXception) {
+
+        }
+        return result;
+    }
+
 
 }
 
