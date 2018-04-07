@@ -9,7 +9,7 @@ public class RatingItem {
     private int rating;
     private String comments;
 
-    public RatingItem(long userID, Calendar joinDate, long itemID, int rating, String comments) {
+    public RatingItem(Calendar joinDate, long itemID, int rating, String comments) {
         this.userID = userID;
         this.joinDate = joinDate;
         this.itemID = itemID;

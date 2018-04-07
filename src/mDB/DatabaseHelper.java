@@ -83,7 +83,7 @@ public class DatabaseHelper {
                 //RATER TABLE
 
                 "CREATE TABLE " + RATER_TABLE_NAME +
-                        "(" + RATER_PRIM_KEY_USERID + " char(5) PRIMARY KEY, " +
+                        "(" + RATER_PRIM_KEY_USERID + " SERIAL PRIMARY KEY, " +
                         RATER_EMAIL + " char(100), " +
                         RATER_NAME + " char(50), " +
                         RATER_JOIN_DATE + " date, " +
@@ -101,7 +101,7 @@ public class DatabaseHelper {
                         //RATING TABLE
 
                         "CREATE TABLE " + RATING_TABLE_NAME +
-                        "(" + RATING_PRIM_KEY_USERID_FOREIGN_KEY + " char(5) references " + RATER_TABLE_NAME + " ( " + RATER_PRIM_KEY_USERID + "), " +
+                        "(" + RATING_PRIM_KEY_USERID_FOREIGN_KEY + " SERIAL references " + RATER_TABLE_NAME + " ( " + RATER_PRIM_KEY_USERID + "), " +
                         RATING_PRIM_KEY_DATE_ADDED + " date, " +
                         RATING_PRICE + " numeric check ( " + RATING_PRICE + " <=5 AND " + RATING_PRICE + " >= 1), " +
                         RATING_FOOD + " numeric check (food <=5 AND food >= 1), " +
@@ -168,6 +168,7 @@ public class DatabaseHelper {
         }
         return st;
     }
+
 
 }
 

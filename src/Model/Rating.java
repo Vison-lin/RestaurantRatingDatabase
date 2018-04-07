@@ -12,7 +12,7 @@ public class Rating {
     private String comments;
     private long restaurantID;
 
-    public Rating(long userID, Calendar dateAdded, int price, int food, int mood, int staff, String comments, long restaurantID) {
+    public Rating(Calendar dateAdded, int price, int food, int mood, int staff, String comments, long restaurantID) {
         this.userID = userID;
         this.dateAdded = dateAdded;
         this.price = price;

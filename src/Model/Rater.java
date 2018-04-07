@@ -10,7 +10,7 @@ public class Rater {
     private String type;
     private int reputation;
 
-    public Rater(long userID, String email, String name, Calendar joinDate, String type, int reputation) {
+    public Rater(String email, String name, Calendar joinDate, String type, int reputation) {
         this.userID = userID;
         this.email = email;
         this.name = name;

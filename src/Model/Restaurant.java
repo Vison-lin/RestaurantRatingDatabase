@@ -7,7 +7,7 @@ public class Restaurant {
     private String type;
     private String url;
 
-    public Restaurant(long restaurantID, String name, String type, String url) {
+    public Restaurant(String name, String type, String url) {
         this.restaurantID = restaurantID;
         this.name = name;
         this.type = type;

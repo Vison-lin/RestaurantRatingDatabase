@@ -9,7 +9,7 @@ public class MenuItem {
     private float price;
     private long restaurantID;
 
-    public MenuItem(long itemID, String name, String type, String category, float price, long restaurantID, String description) {
+    public MenuItem(String name, String type, String category, float price, long restaurantID, String description) {
         this.itemID = itemID;
         this.name = name;
         this.type = type;

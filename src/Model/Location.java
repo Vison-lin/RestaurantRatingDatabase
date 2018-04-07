@@ -11,8 +11,7 @@ public class Location {
     private String address;
     private long restaurantID;
 
-    public Location(long locationID, Calendar firstOpenDate, String managerName, String phoneNumber, String address, long restaurantID) {
-        this.locationID = locationID;
+    public Location(Calendar firstOpenDate, String managerName, String phoneNumber, String address, long restaurantID) {
         this.firstOpenDate = firstOpenDate;
         this.managerName = managerName;
         this.phoneNumber = phoneNumber;
