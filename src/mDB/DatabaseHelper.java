@@ -371,17 +371,44 @@ public class DatabaseHelper {
 
         }
         try {
-            st.execute("drop view inJan");
-        } catch (Exception SQLException) {
-
-        }
-
-        try {
-            st.execute("drop view restInfoInJan");
+            st.execute("drop view inJan; drop view restInfoInJan");
         } catch (Exception SQLException) {
 
         }
         return result;
+    }
+
+    //Question h
+    public ArrayList<ArrayList<String>> getRestaurantStaffLowerThan() {
+        ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+        int i = 0;
+        try {
+            ResultSet rs = st.executeQuery("create view lowestStaff as \n" +
+                    "select min(staff) minStaff from rating where userID = 11\n" +
+                    "group by staff;\n" +
+                    "\n" +
+                    "create view noNameRest as \n" +
+                    "select distinct  l.firstopendate, r.restaurantID, r.staff from restaurant rest, lowestStaff s,rating r\n" +
+                    "left join location l on r.restaurantID = l.restaurantID\n" +
+                    "group by  r.restaurantID, r.staff, l.firstopendate\n" +
+                    "having r.staff < min(s.minstaff);\n" +
+                    "\n" +
+                    "select distinct r.name, n.firstopendate from noNameRest n\n" +
+                    "left join restaurant r on r.restaurantID = n.restaurantID");
+            while (rs.next()) {
+                result.get(i).add(rs.getString(1));
+                result.get(i).add(rs.getString(2));
+                i += 1;
+            }
+        } catch (Exception SQLException) {
+
+        }
+        return result;
+    }
+
+    //Question i
+    public ArrayList<Pair<Restaurant, String>> getRestaurantWithFiveStarFood(String type) { //user selects what type of restaurant
+        ArrayList<Pair<Restaurant, String>> result = new ArrayList<Pair<Restaurant, String>>();
     }
 
 
