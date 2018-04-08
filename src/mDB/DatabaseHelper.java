@@ -445,9 +445,27 @@ public class DatabaseHelper {
         return true;
     }
 
+    public boolean deleteFromRestaurant(int id) {
+        try {
+            st.execute("delete from restaurant where restaurantID = " + Integer.toString(id) + " ;");
+        } catch (Exception SQLException) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean deleteFromRater(int id) {
+        try {
+            st.execute("delete from rater where userid = " + Integer.toString(id) + ";");
+        } catch (Exception SQLException) {
+            return false;
+        }
+        return true;
+    }
+
     public boolean deleteFromMenuItem(int id) {
         try {
-            st.execute("DELETE FROM MENUITEM WHERE itemID =  " + Integer.toString(id));
+            st.execute("DELETE FROM MENUITEM WHERE itemID = " + Integer.toString(id));
         } catch (Exception SQLException) {
             return false;
         }
@@ -479,7 +497,7 @@ public class DatabaseHelper {
         Pair tempPair = null;
         try {
             ResultSet rs = st.executeQuery("select rater.userID, rater.email, rater.name, rater.joinDate, rater.type, rater.reputation, count(rating.userID) from RATER rater \n" +
-                    "left join Rating rating on rater.userID = rating.userID \n" +
+                    "left join Rating rating on rater.userID = rating.userID " +
                     "group by rater.userID order by rater.userID");
 
             while (rs.next()) {
@@ -519,11 +537,6 @@ public class DatabaseHelper {
                 result.get(i).add(rs.getString(3));
                 i += 1;
             }
-        } catch (Exception SQLException) {
-
-        }
-        try {
-            st.execute("drop view inJan; drop view restInfoInJan");
         } catch (Exception SQLException) {
 
         }
