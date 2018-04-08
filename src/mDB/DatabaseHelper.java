@@ -180,7 +180,7 @@ public class DatabaseHelper {
      * a
      *
      * @param restaurantID the prim key of that restaurant
-     * @return Pair<Restaurant   ,       ArrayList   <   Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
+     * @return Pair<Restaurant   ,        A r r a y L ist   <    L o c a t i o n>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
      * @throws SQLException
      */
     public Pair<Restaurant, ArrayList<Location>> displayRestaurantInfo(long restaurantID) throws SQLException {
@@ -226,7 +226,7 @@ public class DatabaseHelper {
      * b
      *
      * @param restaurantID the id of the restaurant of the menu
-     * @return HashMap<String   ,       ArrayList   <   MenuItem>>, where key is the type of the items, can only be: main, starter, or Fires.
+     * @return HashMap<String   ,        A r r a y L i s t    <   Men u I t e m> > , where key is the type of the items, can only be: main, starter, or Fires.
      * @throws SQLException
      */
     public HashMap<String, ArrayList<MenuItem>> fullMenu(long restaurantID) throws SQLException {
@@ -272,7 +272,7 @@ public class DatabaseHelper {
      * c
      *
      * @param category the prim key of that restaurant
-     * @return Pair<Restaurant       ,               ArrayList       <       Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
+     * @return Pair<Restaurant       ,                A r r a y L i s t        <        L ocation>>   w h e r e   t h e   k e y   is that restaurant and the value is an ArrayList that contains that restaurant's all location
      * @throws SQLException
      */
     public HashMap<Restaurant, ArrayList<Location>> displayRestaurantLocationMgr(String category) throws SQLException {
@@ -440,5 +440,182 @@ public class DatabaseHelper {
         return result;
     }
 
-}
 
+
+//Question k
+
+    /**
+     * Find the names, join‐date and reputations of the raters that give the highest overall rating, in
+     * terms of the Food and the Mood of restaurants. Display this information together with the
+     * names of the restaurant and the dates the ratings were done
+     *
+     * @return [name,joindate,reputation,name,dateadded]
+     */
+
+ public ArrayList<ArrayList<String>> getK(){
+     ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+     int i =0;
+     try {
+         ResultSet rs = st.executeQuery("select r.name, r.joindate, r.reputation, z.name, x.dateadded\n" +
+                 "from rater r, restaurant z, rating x\n" +
+                 "where r.userid = x.userid and x.restaurantid = z.restaurantid and x.food=(select max(xx.food)\n" +
+                 "from rating xx) and x.mood =(select max(xx.mood)\n" +
+                 " from rating xx)\n" +
+                 "order by x.dateadded");
+         while (rs.next()) {
+             result.get(i).add(rs.getString(1));
+             result.get(i).add(rs.getString(2));
+             result.get(i).add(rs.getString(3));
+             result.get(i).add(rs.getString(4));
+             result.get(i).add(rs.getString(5));
+             i += 1;
+         }
+     } catch (Exception SQLException) {
+
+     }
+
+    return result;
+
+
+ }
+
+
+    //Question l
+
+    /**
+     * Find the names and reputations of the raters that give the highest overall rating, in terms of the
+     * Food or the Mood of restaurants. Display this information together with the names of the
+     * restaurant and the dates the ratings were done.
+     *
+     * @return [name,reputation,name,dateadded]
+     */
+
+    public ArrayList<ArrayList<String>> getL(){
+        ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+        int i =0;
+        try {
+            ResultSet rs = st.executeQuery("select r.name, r.reputation, z.name, x.dateadded\n" +
+                    "from rater r, restaurant z, rating x\n" +
+                    "where r.userid = x.userid and x.restaurantid = z.restaurantid and (x.food=(select max(xx.food)\n" +
+                    "from rating xx) or x.mood =(select max(xx.mood)\n" +
+                    "from rating xx))\n" +
+                    "order by x.dateadded");
+            while (rs.next()) {
+                result.get(i).add(rs.getString(1));
+                result.get(i).add(rs.getString(2));
+                result.get(i).add(rs.getString(3));
+                result.get(i).add(rs.getString(4));
+
+                i += 1;
+            }
+        } catch (Exception SQLException) {
+
+        }
+
+        return result;
+
+
+    }
+    //Question m
+
+    /**
+     * Find the names and reputations of the raters that rated a specific restaurant (say Restaurant Z)
+     * the most frequently. Display this information together with their comments and the names and
+     * prices of the menu items they discuss.
+     *
+     * @return [name,reputation,name,price,comments]
+     */
+
+    public ArrayList<ArrayList<String>> getM(String name){
+        ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+        int i =0;
+        try {
+            ResultSet rs = st.executeQuery("create view rater_rating\n" +
+                    "as select  r.userid,count(r.restaurantid)cc\n" +
+                    "from rating r\n" +
+                    "where r.restaurantid ="+name+"\n" +
+                    "group by r.userid;\n" +
+                    "\n" +
+                    "select r.name, r.reputation,x.name,x.price,xx.comments\n" +
+                    "from rater r,menuitem x, ratingitem xx\n" +
+                    "where exists(select rr.userid \n" +
+                    "from rater_rating rr\n" +
+                    "where r.userid= rr.userid and rr.cc=(select max(rrr.cc)\n" +
+                    "from rater_rating rrr))\n" +
+                    "and r.userid=xx.userid and xx.itemid=x.itemid and x.restaurantid="+name+";\n");
+            while (rs.next()) {
+                result.get(i).add(rs.getString(1));
+                result.get(i).add(rs.getString(2));
+                result.get(i).add(rs.getString(3));
+                result.get(i).add(rs.getString(4));
+                result.get(i).add(rs.getString(5));
+
+                i += 1;
+            }
+        } catch (Exception SQLException) {
+
+        }
+
+        try {
+            st.execute("drop view rater_rating;");
+        } catch (Exception SQLException) {
+
+        }
+
+        return result;
+
+
+    }
+
+    //Question n
+
+    /**
+     * Find the names and emails of all raters who gave ratings that are lower than that of a rater with
+     * a name called John, in terms of the combined rating of Price, Food, Mood and Staff. (Note that
+     * there may be more than one rater with this name).
+     *
+     * @return [name,email]
+     */
+
+    public ArrayList<ArrayList<String>> getN(){
+        ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+        int i =0;
+        try {
+            ResultSet rs = st.executeQuery("create view john\n" +
+                    "as select (sum(x.price)+ sum(x.food)+sum(x.mood)+sum(x.staff))as total\n" +
+                    "from rating x,rater r\n" +
+                    "where x.userid=r.userid and r.name = 'John Smith';\n" +
+                    "\n" +
+                    "\n" +
+                    "select  r.name,r.email\n" +
+                    "from rater r, rating x,john j\n" +
+                    "where r.userid=x.userid and j.total > ( select (sum(xx.price)+sum(xx.food)+sum(xx.mood)+sum(xx.staff)) as total\n" +
+                    "from rating xx\n" +
+                    "where xx.userid = x.userid);\n");
+            while (rs.next()) {
+                result.get(i).add(rs.getString(1));
+                result.get(i).add(rs.getString(2));
+
+                i += 1;
+            }
+        } catch (Exception SQLException) {
+
+        }
+        try {
+            st.execute( "drop view john;");
+        } catch (Exception SQLException) {
+
+        }
+
+
+        return result;
+
+
+    }
+
+
+
+
+
+
+}
