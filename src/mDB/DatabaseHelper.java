@@ -623,19 +623,16 @@ public class DatabaseHelper {
         ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
         int i =0;
         try {
-            ResultSet rs = st.executeQuery("create view rater_rating\n" +
-                    "as select  r.userid,count(r.restaurantid)cc\n" +
-                    "from rating r\n" +
-                    "where r.restaurantid ="+name+"\n" +
-                    "group by r.userid;\n" +
-                    "\n" +
-                    "select r.name, r.reputation,x.name,x.price,xx.comments\n" +
-                    "from rater r,menuitem x, ratingitem xx\n" +
-                    "where exists(select rr.userid \n" +
-                    "from rater_rating rr\n" +
-                    "where r.userid= rr.userid and rr.cc=(select max(rrr.cc)\n" +
-                    "from rater_rating rrr))\n" +
-                    "and r.userid=xx.userid and xx.itemid=x.itemid and x.restaurantid="+name+";\n");
+            ResultSet rs = st.executeQuery("select r.name, r.reputation,x.name,x.price,xx.comments\n" +
+                    "from rater r,menuitem x, ratingitem xx, (select  q.userid,count(q.restaurantid)cc\n" +
+                    "from rating q\n" +
+                    "where q.restaurantid ="+name+"\n" +
+                    "group by q.userid) as rr\n" +
+                    "where r.userid= rr.userid and rr.cc= (select max(rr.cc) from (select  q.userid,count(q.restaurantid)cc\n" +
+                    "from rating q\n" +
+                    "where q.restaurantid =1\n" +
+                    "group by q.userid) as rr )\n" +
+                    "and r.userid=xx.userid and xx.itemid=x.itemid and x.restaurantid="+name+";");
             while (rs.next()) {
                 result.get(i).add(rs.getString(1));
                 result.get(i).add(rs.getString(2));
@@ -649,11 +646,6 @@ public class DatabaseHelper {
 
         }
 
-        try {
-            st.execute("drop view rater_rating;");
-        } catch (Exception SQLException) {
-
-        }
 
         return result;
 
@@ -674,28 +666,20 @@ public class DatabaseHelper {
         ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
         int i =0;
         try {
-            ResultSet rs = st.executeQuery("create view john\n" +
-                    "as select (sum(x.price)+ sum(x.food)+sum(x.mood)+sum(x.staff))as total\n" +
-                    "from rating x,rater r\n" +
-                    "where x.userid=r.userid and r.name = 'John Smith';\n" +
-                    "\n" +
-                    "\n" +
+            ResultSet rs = st.executeQuery("\n" +
                     "select  r.name,r.email\n" +
-                    "from rater r, rating x,john j\n" +
+                    "from rater r, rating x,(select (sum(x.price)+ sum(x.food)+sum(x.mood)+sum(x.staff))as total\n" +
+                    "from rating x,rater r\n" +
+                    "where x.userid=r.userid and r.name = 'John Smith') as j\n" +
                     "where r.userid=x.userid and j.total > ( select (sum(xx.price)+sum(xx.food)+sum(xx.mood)+sum(xx.staff)) as total\n" +
                     "from rating xx\n" +
-                    "where xx.userid = x.userid);\n");
+                    "where xx.userid = x.userid);");
             while (rs.next()) {
                 result.get(i).add(rs.getString(1));
                 result.get(i).add(rs.getString(2));
 
                 i += 1;
             }
-        } catch (Exception SQLException) {
-
-        }
-        try {
-            st.execute( "drop view john;");
         } catch (Exception SQLException) {
 
         }
