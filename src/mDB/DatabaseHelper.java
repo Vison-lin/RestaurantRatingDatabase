@@ -352,15 +352,18 @@ public class DatabaseHelper {
         ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
         int i = 0;
         try {
-            ResultSet rs = st.executeQuery("create view inJan as\n" +
-                    "select * from rating where dateadded > '2014-12-31' and dateadded < '2015-02-01';\n" +
-                    "\n" +
-                    "create view restInfoInJan as\n" +
-                    "select j.restaurantID, r.name, r.type from inJan j\n" +
-                    "left join Restaurant r on r.restaurantID = j.restaurantID;\n" +
-                    "\n" +
-                    "select name, phoneNumber, type from restInfoInJan j\n" +
-                    "left join Location l on l.restaurantID = j.restaurantID;\n");
+            ResultSet rs = st.executeQuery("select name, phoneNumber, type from Location l\n" +
+                    "right join \n" +
+                    "\t(\n" +
+                    "\t\tselect ij.restaurantID, r.name, r.type from Restaurant r \n" +
+                    "\t\tright join \n" +
+                    "        \t(\n" +
+                    "                select * from rating where dateadded > '2014-12-31' and dateadded < '2015-02-01'\n" +
+                    "            )as ij\n" +
+                    "        \n" +
+                    "        on r.restaurantID = ij.restaurantID\n" +
+                    "    ) as j\n" +
+                    "on l.restaurantID = j.restaurantID;");
             while (rs.next()) {
                 result.get(i).add(rs.getString(1));
                 result.get(i).add(rs.getString(2));
@@ -383,18 +386,15 @@ public class DatabaseHelper {
         ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
         int i = 0;
         try {
-            ResultSet rs = st.executeQuery("create view lowestStaff as \n" +
-                    "select min(staff) minStaff from rating where userID = 11\n" +
-                    "group by staff;\n" +
-                    "\n" +
-                    "create view noNameRest as \n" +
-                    "select distinct  l.firstopendate, r.restaurantID, r.staff from restaurant rest, lowestStaff s,rating r\n" +
-                    "left join location l on r.restaurantID = l.restaurantID\n" +
-                    "group by  r.restaurantID, r.staff, l.firstopendate\n" +
-                    "having r.staff < min(s.minstaff);\n" +
-                    "\n" +
-                    "select distinct r.name, n.firstopendate from noNameRest n\n" +
-                    "left join restaurant r on r.restaurantID = n.restaurantID");
+            ResultSet rs = st.executeQuery("select distinct r.name, n.firstopendate from restaurant r\n" +
+                    "right join \n" +
+                    "\t(\n" +
+                    "        select distinct  l.firstopendate, r.restaurantID, r.staff from restaurant rest,(select min(staff) minStaff from rating where userID =11 group by staff) as s,rating r\n" +
+                    "\t\tleft join location l on r.restaurantID = l.restaurantID\n" +
+                    "\t\tgroup by  r.restaurantID, r.staff, l.firstopendate\n" +
+                    "\t\thaving r.staff < min(s.minstaff)\n" +
+                    "    )as n\n" +
+                    "on r.restaurantID = n.restaurantID");
             while (rs.next()) {
                 result.get(i).add(rs.getString(1));
                 result.get(i).add(rs.getString(2));
@@ -409,6 +409,44 @@ public class DatabaseHelper {
     //Question i
     public ArrayList<Pair<Restaurant, String>> getRestaurantWithFiveStarFood(String type) { //user selects what type of restaurant
         ArrayList<Pair<Restaurant, String>> result = new ArrayList<Pair<Restaurant, String>>();
+        Restaurant tempRest = null;
+        Pair<Restaurant, String> tempPair = null;
+        try {
+            ResultSet rs = st.executeQuery("=select f.restaurantID, f.name, f.type, f.url, r.name from rater r\n" +
+                    "right join\n" +
+                    "\t(\tselect distinct rest.restaurantID, rest.name, rest.type, rest.url, rat.userID from restaurant rest\n" +
+                    "\t\tleft join rating rat on rat.restaurantID = rest.restaurantID\n" +
+                    "\t\twhere rat.food = 5 and rest.type = '" + type + "'\n" +
+                    "    )as f\n" +
+                    "on r.userID = f.userID;");
+            while (rs.next()) {
+                tempRest = new Restaurant(rs.getString(2), rs.getString(3), rs.getString(4));
+                tempRest.setRestaurantID(rs.getLong(1));
+                tempPair = new Pair<Restaurant, String>(tempRest, rs.getString(5));
+                result.add(tempPair);
+            }
+        } catch (Exception SQLException) {
+
+        }
+        return result;
+    }
+
+    public ArrayList<Pair<String, String>> getPopularRestaurantTypes() {//maybe take an input
+        ArrayList<Pair<String, String>> result = new ArrayList<Pair<String, String>>();
+        Pair<String, String> tempPair = null;
+        try {
+            ResultSet rs = st.executeQuery("select rest.type, count(rat.food) numRating from restaurant rest\n" +
+                    "left join rating rat on rat.restaurantID = rest.restaurantID\n" +
+                    "group by rest.type\n" +
+                    "order by numRating desc");
+            while (rs.next()) {
+                tempPair = new Pair<String, String>(rs.getString(1), rs.getString(2));
+                result.add(tempPair);
+            }
+        } catch (Exception SQLException) {
+
+        }
+        return result;
     }
 
 
