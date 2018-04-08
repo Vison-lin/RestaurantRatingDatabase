@@ -1,5 +1,6 @@
 package Model;
 
+import java.sql.Time;
 import java.util.Calendar;
 
 public class Location {
@@ -10,13 +11,17 @@ public class Location {
     private String phoneNumber;
     private String address;
     private long restaurantID;
+    private Time hourOpen;
+    private Time hourClose;
 
-    public Location(Calendar firstOpenDate, String managerName, String phoneNumber, String address, long restaurantID) {
+    public Location(Calendar firstOpenDate, String managerName, String phoneNumber, String address, long restaurantID, Time hourOpen, Time hourClose) {
         this.firstOpenDate = firstOpenDate;
         this.managerName = managerName;
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.restaurantID = restaurantID;
+        this.hourOpen = hourOpen;
+        this.hourClose = hourClose;
     }
 
     public long getLocationID() {
@@ -65,5 +70,21 @@ public class Location {
 
     public void setRestaurantID(long restaurantID) {
         this.restaurantID = restaurantID;
+    }
+
+    public Time getHourOpen() {
+        return hourOpen;
+    }
+
+    public void setHourOpen(Time hourOpen) {
+        this.hourOpen = hourOpen;
+    }
+
+    public Time getHourClose() {
+        return hourClose;
+    }
+
+    public void setHourClose(Time hourClose) {
+        this.hourClose = hourClose;
     }
 }

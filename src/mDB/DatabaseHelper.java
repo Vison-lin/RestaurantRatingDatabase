@@ -6,6 +6,7 @@ import Model.Rater;
 import Model.Restaurant;
 import javafx.util.Pair;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,6 +46,8 @@ public class DatabaseHelper {
     final static String LOCATION_MANAGER_NAME = "managerName";
     final static String LOCATION_PHONE_NUMBER = "phoneNumber";
     final static String LOCATION_ADDRESS = "address";
+    final static String LOCATION_HOUR_OPEN = "hour_open";
+    final static String LOCATION_HOUR_CLOSE = "hour_close";
     final static String LOCATION_RESTAURANTID_FOREIGN_KEY = "restaurantID";
     //MENUITEM TABLE
     final static String MENUITEM_TABLE_NAME = "MENUITEM";
@@ -126,6 +129,8 @@ public class DatabaseHelper {
                         LOCATION_MANAGER_NAME + " char(20), " +
                         LOCATION_PHONE_NUMBER + " char(10), " +
                         LOCATION_ADDRESS + " char(30), " +
+                        LOCATION_HOUR_OPEN + " TIME, " +
+                        LOCATION_HOUR_CLOSE + " TIME, " +
                         LOCATION_RESTAURANTID_FOREIGN_KEY + " INTEGER references " + RESTAURANT_TABLE_NAME + " ( " + RESTAURANT_PRIM_KEY_RESTAURANTID + " ));" +
 
                         //MENUITEM TABLE
@@ -180,7 +185,7 @@ public class DatabaseHelper {
      * a
      *
      * @param restaurantID the prim key of that restaurant
-     * @return Pair<Restaurant   ,       ArrayList   <   Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
+     * @return Pair<Restaurant , ArrayList < Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
      * @throws SQLException
      */
     public Pair<Restaurant, ArrayList<Location>> displayRestaurantInfo(long restaurantID) throws SQLException {
@@ -200,10 +205,12 @@ public class DatabaseHelper {
             String locationMgrName = rs.getString(7);
             String locationPhone = rs.getString(8);
             String locationAddr = rs.getString(9);
+            Time hourOpen = rs.getTime(10);
+            Time hourClose = rs.getTime(11);
 
             restaurant = new Restaurant(restName, restType, restUrl);
             restaurant.setRestaurantID(restID);
-            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restID);
+            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restID, hourOpen, hourClose);
             location.setLocationID(locationID);
             locations.add(location);
         }
@@ -214,7 +221,9 @@ public class DatabaseHelper {
             String locationMgrName = rs.getString(7);
             String locationPhone = rs.getString(8);
             String locationAddr = rs.getString(9);
-            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restaurantID);
+            Time hourOpen = rs.getTime(10);
+            Time hourClose = rs.getTime(11);
+            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restaurantID, hourOpen, hourClose);
             location.setLocationID(locationID);
             locations.add(location);
         }
@@ -226,7 +235,7 @@ public class DatabaseHelper {
      * b
      *
      * @param restaurantID the id of the restaurant of the menu
-     * @return HashMap<String   ,       ArrayList   <   MenuItem>>, where key is the type of the items, can only be: main, starter, or Fires.
+     * @return HashMap<String , ArrayList < MenuItem>>, where key is the type of the items, can only be: main, starter, or Fires.
      * @throws SQLException
      */
     public HashMap<String, ArrayList<MenuItem>> fullMenu(long restaurantID) throws SQLException {
@@ -272,7 +281,7 @@ public class DatabaseHelper {
      * c
      *
      * @param category the prim key of that restaurant
-     * @return Pair<Restaurant       ,               ArrayList       <       Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
+     * @return Pair<Restaurant , ArrayList < Location>> where the key is that restaurant and the value is an ArrayList that contains that restaurant's all location
      * @throws SQLException
      */
     public HashMap<Restaurant, ArrayList<Location>> displayRestaurantLocationMgr(String category) throws SQLException {
@@ -296,9 +305,10 @@ public class DatabaseHelper {
             String locationMgrName = rs.getString(7);
             String locationPhone = rs.getString(8);
             String locationAddr = rs.getString(9);
+            Time hourOpen = rs.getTime(10);
+            Time hourClose = rs.getTime(11);
 
-
-            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restID);
+            Location location = new Location(locationOpenDate, locationMgrName, locationPhone, locationAddr, restID, hourOpen, hourClose);
             location.setLocationID(locationID);
 
 
@@ -322,6 +332,89 @@ public class DatabaseHelper {
         result.put(currResturant, locations);
         return result;
 
+    }
+
+    /**
+     * d
+     *
+     * @param restaurantID the id of the restaurant that the user searches for
+     * @return Pair<MenuItem , Pair < Restaurant , ArrayList < Location>>>
+     * @throws SQLException
+     */
+    public Pair<MenuItem, Pair<Restaurant, ArrayList<Location>>> expensiveItemInfo(long restaurantID) throws SQLException {
+        ResultSet rs = st.executeQuery("SELECT * FROM ((" + MENUITEM_TABLE_NAME + " AS M JOIN " + RESTAURANT_TABLE_NAME + " AS R USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")) JOIN " + LOCATION_TABLE_NAME + " AS L USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")) WHERE M." + MENUITEM_RESTAURANTID_FOREIGN_KEY + " = " + restaurantID + " AND M." + MENUITEM_PRICE + " = (SELECT MAX(" + MENUITEM_PRICE + ") FROM " + MENUITEM_TABLE_NAME + ");");
+        Restaurant restaurant = null;
+        MenuItem menuItem = null;
+        ArrayList<Location> locations = null;
+        if (rs.next()) {
+            long restID = rs.getLong(1);
+            long itemID = rs.getLong(2);
+            String manuItemName = rs.getString(3);
+            String itemType = rs.getString(4);
+            String category = rs.getString(5);
+            String description = rs.getString(6);
+            float price = rs.getFloat(7);
+            String restName = rs.getString(8);
+            String restType = rs.getString(9);
+            String resURL = rs.getString(10);
+            long locationID = rs.getLong(11);
+            Calendar firstOpen = Calendar.getInstance();
+            firstOpen.setTime(rs.getDate(12));
+            String manager = rs.getString(13);
+            String phone = rs.getString(14);
+            String addr = rs.getString(15);
+            Time hourOpen = rs.getTime(16);
+            Time hourClose = rs.getTime(17);
+            restaurant = new Restaurant(restName, restType, resURL);
+            restaurant.setRestaurantID(restID);
+            menuItem = new MenuItem(manuItemName, itemType, category, price, restID, description);
+            menuItem.setItemID(itemID);
+            locations = new ArrayList<>();
+            Location location = new Location(firstOpen, manager, phone, addr, restID, hourOpen, hourClose);
+            location.setLocationID(locationID);
+            locations.add(location);
+        }
+        while (rs.next()) {
+            long locationID = rs.getLong(11);
+            Calendar firstOpen = Calendar.getInstance();
+            firstOpen.setTime(rs.getDate(12));
+            String manager = rs.getString(13);
+            String phone = rs.getString(14);
+            String addr = rs.getString(15);
+            Time hourOpen = rs.getTime(16);
+            Time hourClose = rs.getTime(17);
+            Location location = new Location(firstOpen, manager, phone, addr, restaurantID, hourOpen, hourClose);
+            location.setLocationID(locationID);
+            locations.add(location);
+        }
+        return new Pair<MenuItem, Pair<Restaurant, ArrayList<Location>>>(menuItem, new Pair<>(restaurant, locations));
+    }
+
+
+    /**
+     * e
+     *
+     * @return ArrayList<String [ ]>, where result[0] = restaurantType, result[1] = category, result[2] = averagePriceOfEachCombination;
+     * @throws SQLException
+     */
+    public ArrayList<String[]> averagePrice() throws SQLException {
+        ResultSet rs = st.executeQuery("SELECT RESTTYPE, " + MENUITEM_CATEGORY + ", AVG(" + MENUITEM_PRICE + ") FROM (SELECT R." + RESTAURANT_TYPE + " AS RESTTYPE, M.* FROM " + RESTAURANT_TABLE_NAME + " AS R, " + MENUITEM_TABLE_NAME + " AS M WHERE R." + RESTAURANT_PRIM_KEY_RESTAURANTID + " = M." + MENUITEM_RESTAURANTID_FOREIGN_KEY + " ORDER BY RESTTYPE, " + MENUITEM_CATEGORY + ") AS TEMP GROUP BY RESTTYPE, " + MENUITEM_CATEGORY + ";");
+        ArrayList<String[]> result = new ArrayList<>();
+        while (rs.next()) {
+            String restType = rs.getString(1);
+            String category = rs.getString(2);
+            Float avgPriceInFloat = rs.getFloat(3);
+            BigDecimal bd = new BigDecimal(Float.toString(avgPriceInFloat));
+            bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+            avgPriceInFloat = bd.floatValue();
+            String avgPrice = String.valueOf(avgPriceInFloat);
+            String[] set = new String[3];
+            set[0] = restType;
+            set[1] = category;
+            set[2] = avgPrice;
+            result.add(set);
+        }
+        return result;
     }
 
     public boolean addRestaurant(String name, String type, String url) {
