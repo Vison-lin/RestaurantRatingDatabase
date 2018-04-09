@@ -261,7 +261,7 @@ public class DatabaseHelper {
                 if (menuItems == null) {
                     throw new NullPointerException();
                 }
-                result.put(currCategory, menuItems);
+                result.put(currCategory.replaceAll("\\s+", ""), menuItems);
                 menuItems = new ArrayList<>();
                 menuItems.add(menuItem);
                 currCategory = category;
@@ -273,7 +273,7 @@ public class DatabaseHelper {
                 menuItems.add(menuItem);
             }
         }
-        result.put(currCategory, menuItems);
+        result.put(currCategory.replaceAll("\\s+", ""), menuItems);
         return result;
     }
 
