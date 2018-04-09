@@ -342,7 +342,7 @@ public class DatabaseHelper {
      * @throws SQLException
      */
     public Pair<MenuItem, Pair<Restaurant, ArrayList<Location>>> expensiveItemInfo(long restaurantID) throws SQLException {
-        ResultSet rs = st.executeQuery("SELECT * FROM ((" + MENUITEM_TABLE_NAME + " AS M JOIN " + RESTAURANT_TABLE_NAME + " AS R USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")) JOIN " + LOCATION_TABLE_NAME + " AS L USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")) WHERE M." + MENUITEM_RESTAURANTID_FOREIGN_KEY + " = " + restaurantID + " AND M." + MENUITEM_PRICE + " = (SELECT MAX(" + MENUITEM_PRICE + ") FROM " + MENUITEM_TABLE_NAME + ");");
+        ResultSet rs = st.executeQuery("SELECT * FROM ((" + MENUITEM_TABLE_NAME + " AS M JOIN " + RESTAURANT_TABLE_NAME + " AS R USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")) JOIN " + LOCATION_TABLE_NAME + " AS L USING (" + RESTAURANT_PRIM_KEY_RESTAURANTID + ")) WHERE M." + MENUITEM_RESTAURANTID_FOREIGN_KEY + " = " + restaurantID + " AND M." + MENUITEM_PRICE + " = (SELECT MAX(MM." + MENUITEM_PRICE + ") FROM " + MENUITEM_TABLE_NAME + " AS MM WHERE MM." + RESTAURANT_PRIM_KEY_RESTAURANTID + " = " + restaurantID + ");");
         Restaurant restaurant = null;
         MenuItem menuItem = null;
         ArrayList<Location> locations = null;

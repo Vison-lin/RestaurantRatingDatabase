@@ -14,6 +14,7 @@ public class Restaurant {
         this.url = url;
     }
 
+
     public long getRestaurantID() {
         return restaurantID;
     }
